@@ -1,4 +1,5 @@
-@[TOC]
+<!-- START doctoc -->
+<!-- END doctoc -->
 
 # js相关
 
