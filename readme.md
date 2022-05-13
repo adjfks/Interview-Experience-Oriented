@@ -40,7 +40,7 @@ This Repo is the collections of the common fontend Interview experience question
 
 #### 如何参与开源项目
 
-贡献使开源社区成为一个学习、激励和创造的绝佳场所。你所作的任何贡献都是**非常感谢**的。
+欢迎大家参与贡献！
 
 1. Fork the Project
 2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
