@@ -30,10 +30,6 @@
 
 [手撕源码系列 —— lodash 的 debounce 与 throttle](https://zhuanlan.zhihu.com/p/91110334)
 
-
-
-
-
 # 框架
 
 ## Vue
@@ -119,7 +115,74 @@ return function render(_ctx, _cache) {
 ) {
 with(this){return _c('div',{attrs:{"id":"app"}},[_c('div',{attrs:{"id":"app"}},_l((items),function(item){return (shouldShowUsers)?_c('div',{key:item.id},[_v("\n        "+_s(item.name)+"\n      ")]):_e()}),0)])}
 })
-
-
-
 ```
+
+
+
+# 浏览器
+
+## 1.你知道哪些跨页面通信的方式呢？
+
+[面试官：前端跨页面通信，你知道哪些方法？ - 掘金](https://juejin.cn/post/6844903811232825357)
+
+- 广播模式：Broadcast Channe / Service Worker / LocalStorage + StorageEvent
+- 共享存储模式：Shared Worker / IndexedDB / cookie
+- 口口相传模式：window.open + window.opener
+- 基于服务端：Websocket / Comet / SSE 等
+
+
+
+**同源页面**
+
+- **Broadcast Channel**
+  
+  - 它允许同源的不同浏览器窗口，Tab页，frame或者 iframe 下的不同文档之间相互通信。
+  
+  ```javascript
+  var bc = new BroadcastChannel('internal_notification');
+  bc.postMessage('New listening connected!');
+  ```
+
+-  **Service Worker**
+
+    在 Service Worker 中监听了`message`事件，获取页面（从 Service Worker 的角度叫 client）发送的信息。然后通过`self.clients.matchAll()`获取当前注册了该 Service Worker 的所有页面，通过调用每个client（即页面）的`postMessage`方法，向页面发送消息。这样就把从一处（某个Tab页面）收到的消息通知给了其他页面。
+
+
+
+- **LocalStorage**
+
+当前页面使用的storage被其他页面修改时会触发StorageEvent事件，该事件对象上有5个只读的属性：`key newValue oldValue storageArea url`
+
+
+
+-  **Shared Worker**
+
+
+
+-  **IndexedDB**
+
+
+
+-  **window.open + window.opener**
+
+
+
+**非同源页面**
+
+- **iframe**
+
+使用一个用户不可见的 **iframe **作为“桥”。由于 iframe 与父页面间可以通过指定`origin`来忽略同源限制，因此可以在每个页面中嵌入一个 iframe （例如：`http://sample.com/bridge.html`），而这些 iframe 由于使用的是一个 url，因此属于同源页面，其通信方式可以复用上面第一部分提到的各种方式。
+
+# CSS
+
+## 基础
+
+### 1.块级元素和行内元素
+
+- 块级元素会独占一行，其宽度自动填满其父元素宽度  ，行内元素不会独占一行，相邻的行内元素会排列在同一行里，直到一行排不下，才会换行，其宽度随元素的内容而变化。
+
+- 块级元素可以设置 width, height属性，行内元素设置width, height无效。
+
+- 块级元素可以设置margin 和 padding.行内元素上下margin 和 上下padding无效。
+
+- 块级元素可以包含行内元素和块级元素。行内元素不能包含块级元素。
