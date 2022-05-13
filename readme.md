@@ -25,7 +25,7 @@ This Repo is the collections of the common fontend Interview experience question
     23届前端，收集面经问题和自己的解答或自己认为不错的答案， 面向面经复习，提高效率。
     <p>当然，要对问题有深刻的认识还是要看书加实践！</p>
     <br />
-    <a href="https://github.com/adjfks/Interview-Experience-Oriented/collections.md"><strong>面经收集»</strong></a>
+    <a href="https://github.com/adjfks/Interview-Experience-Oriented/blob/main/collections.md"><strong>面经收集»</strong></a>
     <br />
     <br />
     <a href="https://github.com/adjfks/Interview-Experience-Oriented">查看Demo</a>
