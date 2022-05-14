@@ -4,13 +4,13 @@
 
 # js相关
 
-## 核心
+## 👀核心
 
 ### 1.闭包及其应用 ？
 
 [【JavaScript修炼】闭包和虽死犹存的函数](https://blog.csdn.net/laplacepoisson/article/details/124662698)
 
-## DOM
+## 👀DOM
 
 ### 1.直接绑定和事件监听有哪些区别？
 
@@ -32,7 +32,7 @@
 
 # 框架
 
-## Vue
+## 👀Vue
 
 ### 1. vue组件通信方式？
 
@@ -119,7 +119,100 @@ with(this){return _c('div',{attrs:{"id":"app"}},[_c('div',{attrs:{"id":"app"}},_
 
 
 
-# 浏览器
+### 3.[面试官：说说你对vue的理解? ](https://github.com/febobo/web-interview/issues/1)
+
+- vue是什么？
+  
+  - Vue.js（/vjuː/，或简称为Vue）是一个用于创建用户界面的开源JavaScript框架，也是一个创建**单页应用**的Web应用框架。
+  
+  - Vue所关注的核心是MVC模式中的**视图层**，同时，它也能方便地**获取数据更新**，并通过组件内部特定的方法实现视图与模型的交互
+
+- vue的核心特性：
+  
+  - 数据驱动MVVM：三层
+  
+  - 指令系统
+    
+    - 带有 v- 前缀的特殊属性作用：当表达式的值改变时，将其产生的连带影响，响应式地作用于 DOM
+    
+    - 常用的指令
+  
+  - 组件化
+    
+    - 把图形、非图形的各种逻辑均抽象为一个统一的概念（组件）来实现开发的模式
+    
+    - 降低整个系统的耦合度
+    
+    - 调试方便
+    
+    - 提高可维护性
+
+- vue与传统开发区别：
+  
+  - vue通过操作数据来操作界面事件，不操作DOM
+  
+  - DOM的变化是数据变化导致的，即DOM与数据绑定。
+
+
+
+
+
+### 4.[面试官：Vue3.0的设计目标是什么？做了哪些优化?](https://github.com/febobo/web-interview/issues/45)
+
+更小、更快、更友好、优化方案。
+
+- 更小
+  
+  - `Vue3`移除一些不常用的 `API`
+  
+  - 引入`tree-shaking`，可以将无用模块“剪辑”，仅打包需要的，使打包的整体体积变小了
+
+- 更快：主要体现在编译方面：
+  
+  - diff算法优化
+  - 静态提升
+  - 事件监听缓存
+  - SSR优化
+
+- 更友好：composition API
+  
+  - 很多类似的第三方库，我们只需要调用即可，不必关注实现过程，开发效率大大提高.
+  
+  - `VUE3`是基于`typescipt`编写的，可以享受到自动的类型定义提示
+
+- 优化方案
+  
+  - `vue3`从很多层面都做了优化，可以分成三个方面：
+    
+    - 源码
+    - 性能
+    - 语法 API
+  
+  - 源码
+    
+    - 将不同的模块拆分到`packages` 目录下面不同的子目录中，使得模块拆分更细化，职责划分更明确，模块之间的依赖关系也更加明确，开发人员也更容易阅读、理解和更改所有模块源码，提高代码的可维护性
+    
+    - 一些 `package`（比如 `reactivity` 响应式库）是可以独立于 `Vue` 使用的
+  
+  - 性能
+    
+    - 体积优化
+    
+    - 编译优化
+    
+    - 数据劫持优化
+
+
+
+
+
+
+
+
+
+
+
+# 👀浏览器
 
 ## 1.你知道哪些跨页面通信的方式呢？
 
@@ -129,8 +222,6 @@ with(this){return _c('div',{attrs:{"id":"app"}},[_c('div',{attrs:{"id":"app"}},_
 - 共享存储模式：Shared Worker / IndexedDB / cookie
 - 口口相传模式：window.open + window.opener
 - 基于服务端：Websocket / Comet / SSE 等
-
-
 
 **同源页面**
 
@@ -143,29 +234,19 @@ with(this){return _c('div',{attrs:{"id":"app"}},[_c('div',{attrs:{"id":"app"}},_
   bc.postMessage('New listening connected!');
   ```
 
--  **Service Worker**
+- **Service Worker**
 
     在 Service Worker 中监听了`message`事件，获取页面（从 Service Worker 的角度叫 client）发送的信息。然后通过`self.clients.matchAll()`获取当前注册了该 Service Worker 的所有页面，通过调用每个client（即页面）的`postMessage`方法，向页面发送消息。这样就把从一处（某个Tab页面）收到的消息通知给了其他页面。
-
-
 
 - **LocalStorage**
 
 当前页面使用的storage被其他页面修改时会触发StorageEvent事件，该事件对象上有5个只读的属性：`key newValue oldValue storageArea url`
 
+- **Shared Worker**
 
+- **IndexedDB**
 
--  **Shared Worker**
-
-
-
--  **IndexedDB**
-
-
-
--  **window.open + window.opener**
-
-
+- **window.open + window.opener**
 
 **非同源页面**
 
@@ -175,7 +256,7 @@ with(this){return _c('div',{attrs:{"id":"app"}},[_c('div',{attrs:{"id":"app"}},_
 
 # CSS
 
-## 基础
+## 👀基础
 
 ### 1.块级元素和行内元素
 
