@@ -29,13 +29,9 @@ This Repo is the collections of the common fontend Interview experience question
     <br />
     <br />
     <a href="https://github.com/adjfks/Interview-Experience-Oriented">查看Demo</a>
-
     <a href="https://github.com/adjfks/Interview-Experience-Oriented/issues">报告Bug</a>
-    
     <a href="https://github.com/adjfks/Interview-Experience-Oriented/issues">提出新特性</a>
-
 </p>
-
 </p>
 
 #### 如何参与开源项目

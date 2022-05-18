@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Document</title>
+		<style>
+			body {
+				background-color: #eee;
+				min-height: 100vh;
+				display: flex;
+				justify-content: space-around;
+				align-items: center;
+			}
+			.box1 {
+				width: 400px;
+				height: 400px;
+				background-color: green;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+			.box2 {
+				width: 200px;
+				height: 200px;
+				background-color: skyblue;
+				display: flex;
+				justify-content: center;
+				align-items: center;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="box1">
+			<div class="box2">
+				<button id="btn1">按钮1</button>
+			</div>
+		</div>
+		<button id="btn2">按钮2</button>
+
+		<script>
+			document.body.addEventListener(
+				'click',
+				() => {
+					console.log('body在捕获阶段被点击')
+				},
+				true
+			)
+			document.querySelector('.box1').addEventListener(
+				'click',
+				() => {
+					console.log('绿盒子在捕获阶段被点击')
+				},
+				true
+			)
+			document.querySelector('.box2').addEventListener('click', () => {
+				console.log('蓝盒子被点击')
+			})
+			document.querySelector('#btn1').addEventListener(
+				'click',
+				() => {
+					console.log('按钮1被点击')
+				},
+				true
+			)
+			document.querySelector('#btn2').addEventListener('click', () => {
+				console.log('按钮2被点击')
+			})
+		</script>
+	</body>
+</html>
