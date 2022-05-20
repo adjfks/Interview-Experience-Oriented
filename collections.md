@@ -12,9 +12,23 @@ js单线程，原因避免dom渲染冲突
 
 ### 2.js数据类型？
 
-- 基本类型：Undefined，Boolean，String，Number，Null，Symbol,BigInt
+1. 分为两类：
+   
+   - 7种简单数据类型：Number、String、 Boolean、 null 、undefined 、BigInt 、Symbol
+   
+   - 1种复杂数据类型：Object
 
-- 引用类型：Object (Array,Date,RegExp,Function)
+2. 本质区别：存储方式不同
+   
+   - 简单数据类型存储在栈中
+   
+   - 引用数据类型存储在堆中，栈中存放的是它在堆中的指针。
+
+3. es6新数据类型：
+   
+   - Symbol的特点是它的值是唯一的，可以作为对象的属性标识符。如`obj[Symbol('a')] = 'a'`。Symbol属性不能使用for in 和`Object.getOwnPropertyNames()`得到。需要使用`Object.getOwnPropertySumbols`。
+   
+   - BigInt是一个内置对象，可以用来表示任意大的整数。定义时可以直接在一个整数后面加上'n'，或者调用`BigInt('12348329483029432')`传入一个整数值或字符串值来创建。字符串值必须是一个数字的字符串，含有字母会报错。不能和Number类型一起运算，否则会报错。
 
 ### 3.创建对象的几种方式？
 
@@ -141,6 +155,32 @@ event.target
 
 - for in 都可以遍历，但只有数组、字符串和对象能拿到属性（索引）
 
+### 7. 说一说promise是什么与使用方法？
+
+1. **Promise的作用**：Promise是异步微任务，解决了异步多层嵌套回调的问题，让代码的可读性更高，更容易维护。
+
+2. **Promise创建**：Promise是ES6提供的一个构造函数，可以使用Promise构造函数new一个实例，Promise构造函数接收一个函数作为参数，这个函数有两个参数，分别是两个函数 `resolve`和`reject`，`resolve`将Promise的状态由`pending`变为`resolved`（也叫`Fulfilled`），将异步操作的结果作为参数传递过去；`reject`则将状态由`pending`转变为`rejected`，在异步操作失败时调用，将异步操作报出的错误作为参数传递过去。
+
+3. **链式调用**：实例创建完成后，可以使用`then`方法分别指定成功或失败的回调函数，也可以使用catch捕获失败，then和catch最终返回的也是一个Promise，所以可以链式调用。
+
+4. **Promise特点**：
+   
+   1. 状态只能由pending变为fulfilled或从pending变为rejected，状态一旦发生变化就不可逆。
+   
+   2. then方法和catch只要不报错，返回的都是一个fulfilled的Promise
+   
+   3. Promise各种方法（今晚看一下红宝书）
+
+
+
+
+
+
+
+
+
+
+
 ## 👀核心
 
 ### 1.闭包及其应用 ？
@@ -221,6 +261,37 @@ JavaScript中的每个对象都有一个prototype属性，我们称之为原型�
 
 es6的class其实就是个语法糖，babel转出来的依旧是寄生组合式继承。 具体的使用没有太多的可以说的，需要注意super即可以当函数，也可以实例。这部分不做细说，因为很复杂，有兴趣参考[es6 Class的继承](http://es6.ruanyifeng.com/#docs/class-extends#super-%E5%85%B3%E9%94%AE%E5%AD%97)。  
 需要注意的是，**ES5的继承，实质是先创造子类的实例对象this，然后再将父类的方法添加到this上面（Parent.apply(this)）。ES6 的继承机制完全不同，实质是先创造父类的实例对象this（所以必须先调用super方法），然后再用子类的构造函数修改this。**
+
+### 2. let const var 的区别？
+
+1. var声明的变量是**函数作用域**的，会发生变量提升现象。在编译的过程中，会把var声明的变量提升到函数作用域顶部，变量的值为undefined。然后在代码声明的地方才被赋值。这个特性允许我们在变量声明之前使用变量。
+
+2. let和const都是**块作用域**的，不会有变量提升现象。所以必须在声明之后才能使用。如果在声明之前使用会报错。
+
+3. let 和 const声明的变量是与其所在**作用域绑定**的，会存在**暂时性死区**，即作用域内，变量声明之前的区域。在暂时性死区中访问该变量会报错。
+
+4. var 和 let 声明变量时都可以不赋值，此时变量的值为undefined。但是const必须在声明时就**初始化**，不允许先声明后赋值。
+
+5. let 和 const 都不允许**重复声明**而var可以。
+
+6. const 用于声明**只读常量**，所谓常量是指并不是指它的值不变，而是指它所指向的内存地址保存的数据不变。对于Number、String、布尔值该地址所保存的就是值本身，所以不能修改。而对于对象该地址只是保存了对象的指针，所以可以修改。
+
+7. let 和 const 声明的变量不属于**顶层对象**，var声明的变量是顶层对象的属性。在浏览器顶层对象为window，node中则为global。
+
+扩展：**怎么冻结对象？**
+
+可以封装一个递归函数，使用`Object.freeze()`来冻结。
+
+```js
+var constantize = (obj) => {
+  Object.freeze(obj);
+  Object.keys(obj).forEach( (key, i) => {
+    if ( typeof obj[key] === 'object' ) {
+      constantize( obj[key] );
+    }
+  });
+};
+```
 
 ## 👀DOM
 
@@ -604,11 +675,19 @@ treeShaking就是移除 JavaScript 上下文中的未引用代码(dead-code)，�
 
 ### 1. 谈谈cookie, sessionStorage 和localStorage之间的区别.
 
-- `localStorage` **持久化**的本地存储，除非主动删除数据，否则数据是永远不会过期的。
+1. 存储位置：三者都是浏览器的本地存储，这也是它们的共同点。
 
-- `sessionStorage` 不是一种持久化的本地存储，仅仅是**会话级别的存储**
+2. 写入方式：cookie是由服务器端写入的，sessionStorage和localStorage是由前端写入。
 
-- `cookie` Web Storage的概念和cookie相似，区别是它是为了更大容量 存储设计的。 HTTP协议是无状态的协议。一旦数据交换完毕，客户端与服务器端的连接就会关 闭，再次交换数据需要建立新的连接。这就意味着服务器无法从连接上跟踪会话， `Cookie`就是这样的一种机制。它可以弥补`HTTP`协议无状态的不足。在Session出现之前 ，基本上所有的网站都采用Cookie来跟踪会话。Cookie实际上是一小段的文本信息。客 户端请求服务器，如果服务器需要记录该用户状态，就使用response向客户端浏览器颁 发一个Cookie。客户端浏览器会把Cookie保存起来。当浏览器再请求该网站时，浏览 器把请求的网址连同该Cookie一同提交给服务器。服务器检查该Cookie，以此来辨认用户状态 。服务器还可以根据需要修改Cookie的内容。 Cookie的大小是受限的，并且每次你请求 一个新的页面的时候Cookie都会被发送过去，这样无形中浪费了带宽，另外cookie还需要 指定作用域，不可以跨域调用。Cookie在客户端是由浏览器来管理的，浏览器能够保证 Google只会操作Google的Cookie而不会操作Baidu的Cookie，从而保证用户的隐私安 全。 除此之外，Web Storage拥有setItem,getItem,removeItem,clear等方法， 不像cookie需要前端开发者自己封装setCookie，getCookie。 但是 **Cookie也是不可 以或缺的：Cookie的作用是与服务器进行交互，作为HTTP规范的一部分而存在 ，而 Web Storage仅仅是为了在本地“存储”数据而生**
+3. 生命周期：cookie的生命周期是服务器端在写入时就设置好的。localStorage除非手动删除，否则会一直存在。sessionStorage是会话级别的存储，浏览器页面已关闭就自动清除。
+
+4. 存储大小：cookie存储空间大小约为4kB。localStorage和sessionStorage就比较大，大概有5M。
+
+5. 数据共享：三者都遵循同源规则。sessionStorage还限制必须是同一个页面。
+
+6. 发送时是否自动携带：cookie在前端想后端发送请求时会自动携带，但是另外两个不会。
+
+7. 应用场景：cookie一般用于存储登录验证信息如SessionID、token。localStorage用于存储不易变动的数据，从而减轻服务器压力。SessionStorage可以用来检测用户是否是刷新还是关闭窗口后进入页面，如音乐播放器恢复播放进度条的功能。
 
 ### 2.HTTP的特点有哪一些？
 
@@ -684,10 +763,6 @@ https://www.cnblogs.com/frankyou/p/6145485.html
 
 [帧、报文、报文段、分组、包、数据报的概念区别 - stardsd - 博客园](https://www.cnblogs.com/sddai/p/5649939.html)
 
-
-
-
-
 ### 8. 网络模型有哪些？
 
 网络模型有4层网络模型、5层网络模型和7层网络模型。
@@ -705,12 +780,6 @@ https://www.cnblogs.com/frankyou/p/6145485.html
   - 网络层使用IP协议，每一个主机都会对应一个唯一的IP地址，用于定位。在这一层主要实现了网络包的封装、分片、路由、转发。在TCP数据包添加上IP头部后交给下一层即网络接口层。
   
   - 在网络接口层对应的硬件就是网卡。每一个网卡都会有一个MAC地址，通过ARP协议获得下一站的MAC地址之后，在IP数据包中添加帧头和帧尾，放到发包队列中。
-
-
-
-
-
-
 
 - UDP和TCP区别讲一下
 
