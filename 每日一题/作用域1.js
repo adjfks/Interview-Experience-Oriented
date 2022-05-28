@@ -1,10 +1,10 @@
-function Foo() {
-	getName = function () {
-		console.log(1)
-	}
-	return this
-}
-getName()
+// function Foo() {
+// 	getName = function () {
+// 		console.log(1)
+// 	}
+// 	return this
+// }
+// getName()
 // Foo.getName = function () {
 // 	console.log(2)
 // }
@@ -26,3 +26,10 @@ getName()
 // new Foo().getName()
 // new new Foo().getName()
 // 2 4 1 1 2 3 3
+
+
+function foo() {
+	console.log(1)
+}
+var foo = 2
+foo()
