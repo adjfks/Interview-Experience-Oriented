@@ -223,7 +223,7 @@ foo()
 
 3. 块级作用域：在一个上下文中，let / const 声明的变量会被放在词法环境中，其内部维护了一个最小栈结构，进入一个作用域块就将该作用域块的变量压入栈顶，执行完后就弹出。而其他的var声明的变量则存放在变量环境中。查找变量时会沿词法环境栈顶向下查找，如果找到就返回，找不到就到变量环境中找。
 
-#### 12. 词法环境
+### 12. 词法环境
 
 词法环境
 
@@ -239,15 +239,107 @@ foo()
 
 - 对外部词法环境的引用
 
+### 13. Symbol
+
+1. What?es6新增的原始数据类型，具有唯一性和不可变性。
+
+2. Why?主要作用是作为属性的唯一标识符，防止对象属性发生冲突。
+
+3. How?
+- 使用`Symbol()`创建，可以传入字符串，但是每一个symbol都和传入的字符串无关，都是唯一的，用相同字符串创建的Symbol也是不一样的。
+
+- 不能和new一起使用，是为了避免创造出包装对象。
+
+- 重用Symbol的唯一方式是使用`Symbol.for(字符串)`来在全局注册表中注册，访问时也是用`Symbol.for(字符串)`，系统会检查全局注册表中是否注册过该`Symbol`，如果注册过就使用，没有就注册一个。传入参数都会被转换为字符串。
+
+- `Symbol.keyFor(全局注册的Symbol)`用于查询一个全局注册Symbol对应的字符串，找不到返回undefined
+
+- 用作对象字面量属性时加上一个`[]`。
+
+- es6内置了一批符号，比如`Symbol.iterator`，在规范里经常带上前缀`@@iterator`
+
+### 14. 判断数据类型
+
+1. typeof: 返回对应的字符串，但是null返回的是`'object'`，且无法区分`Object`类型具体是哪一种。
+
+2. `instanceof`: 原理是判断右边构造函数的`prototype`是否在左边值的原型链上。
+
+3. `Object.prototype.toString.call()`，可以准确判断数据类型，返回值形式为`[object xxx]`
+
+### 15. 如何避免js阻止DOM渲染
+
+感觉这题可以是为了考察浏览器的渲染过程，所以渲染过程也可以说一说。
+
+1. 尽量把嵌入的js脚本放到body的最下面，这样会等DOM渲染完才执行js
+
+2. 可以给外链的`script`加上`sync`或`defer`来异步加载脚本，这样在脚本加载过程中不会阻塞DOM渲染，不过当脚本加载完后还是会执行且阻塞DOM渲染只是节省了请求的实践。但是两者有区别，sync一旦加载完脚本立即执行，defer执行时机不定，会在`DOMContentLoaded`事件之前执行。
+
+3. 为了节约请求时间，对于一些比较小的js可以采用内联的方式来嵌入html文件。
+
+4. 有一些大的js就不适合内联，那么可以采用压缩的方式减小体积降低请求时间。
+
+### 16. js数组怎么去重?
+
+1. reduce
+
+2. Set
+
+3. for
+
+### 17. 字面量new出来的对象和 Object.create(null)创建出来的对象有什么区别?
+
+字面量和new创建出来的对象都会继承Object的属性和方法，它们的隐式原型指向Object的显式原型。
+
+而 `Object.create(null)`创建出来的对象原型为null,作为原型链的最顶端，没有继承Object的方法和属性。
+
 ## 👀核心
 
 ### 1.闭包及其应用 ？
+
+**JavaScript之所以存在闭包是因为我们在词法作用域的环境下写代码，而其中的函数也是值，可以随意传来传去。我们在词法作用域的环境下写代码，而其中的函数也是值，可以随意传来传去。**
 
 [【JavaScript修炼】闭包和虽死犹存的函数](https://blog.csdn.net/laplacepoisson/article/details/124662698)
 
 1. 闭包就是函数及其对周围环境的引用。通常在实践中，我们所认为的闭包是这样的：如果一个函数引用了它的外部变量，且外部变量所在的这个执行上下文已经被销毁了，但是这个函数被调用时依然能访问到那些变量，这就是闭包。
 
 2. 从内存模型的角度来理解的话就是：遇到函数调用，首先创建一个空的执行上下文，然后进行代码执行前的准备工作，包括使用函数的arguments初始化变量对象，将变量声明函数声明等添加到变量对象，确定作用域链，确定this指向等。然后还会对函数内部的函数进行**预扫描（词法扫描）**，如果发现其有对外部函数变量的引用就会在堆中创建一个closure的内部对象，用来保存这些变量，这个也就是我们所说的闭包。
+
+利用闭包可以写一个模块管理器：
+
+```js
+var MyModules = (function Manager() {
+  var modules = {}
+
+  function define(name, deps, impl) {
+    for (var i = 0; i < deps.length ; i++) {
+      deps[i] = modules[deps[i]]
+    }
+    modules[name] = impl.apply(impl , deps)
+  }
+
+  function get(name) {
+    return modules[name]
+  }
+
+  return {
+    define:define,
+    get: get
+  }
+})()
+
+// 定义模块
+MyModules.define('bar', [], function () {
+  function hello(who) {
+    return 'hello ' + who
+  }
+  return {
+    hello
+  }
+})
+
+var bar = MyModules.get('bar')
+
+```
 
 ### 2.谈谈javascript作用域链？
 
@@ -357,7 +449,98 @@ myObj.showThis()
 
 3. 普通函数的this默认指向全局window对象，但是严格模式下，函数的执行上下文中的this默认为undefined
 
-4. 
+
+
+### 8. 手写call、apply、bind？
+
+**call**
+
+```js
+Function.prototype.my_call = function (context) {
+  // 调用者不是函数，抛出错误
+  if (typeof this !== 'function') {
+    throw new Error('Not a function')
+  }
+  // context不传参时默认为window
+  context = context || window
+  // 为context设置fn方法
+  context.fn = this
+  // 将arguments伪数组转为真正的数组并截取第一个context参数后的参数
+  let args = Array.from(arguments).slice(1)
+  // 调用fn并传入参数
+  let result = context.fn(...args)
+  // 删除context上的fn方法
+  delete context.fn
+  // 返回执行结果
+  return result
+}
+```
+
+**apply**
+
+```js
+Function.prototype.my_apply = function (context) {
+  // 调用者不是函数，抛出错误
+  if (typeof this !== 'function') {
+    throw new Error('Not a function')
+  }
+
+  let result
+
+  // context不传参时默认为window
+  context = context || window
+
+  // 为context设置fn方法
+  context.fn = this
+
+  if (arguments[1]) {
+    result = context.fn(...arguments[1])
+  } else {
+    result = context.fn()
+  }
+
+  delete context.fn
+
+  return result
+}
+
+```
+
+**bind**
+
+```js
+Function.prototype.myBind = function (context) {
+  // 判断是否是一个函数
+  if (typeof this !== 'function') {
+    throw new TypeError('Not a Function')
+  }
+  // 保存调用bind的函数
+  const _this = this
+  // 保存参数
+  const args = Array.prototype.slice.call(arguments, 1)
+  // 返回一个函数
+  return function F() {
+    // 判断是不是new出来的
+    if (this instanceof F) {
+      // 如果是new出来的
+      // 返回一个空对象，且使创建出来的实例的__proto__指向_this的prototype，且完成函数柯里化
+      return new _this(...args, ...arguments)
+    } else {
+      // 如果不是new出来的改变this指向，且完成函数柯里化
+      return _this.apply(context, args.concat(...arguments))
+    }
+  }
+}
+
+```
+
+
+
+### 9. javascript继承方式及其优缺点
+
+[【JavaScript修炼】javascript多种继承方式及其优缺点_前端corner的博客-CSDN博客](https://blog.csdn.net/laplacepoisson/article/details/124624832)
+
+
 
 ## 👀ES6
 
@@ -591,6 +774,24 @@ with(this){return _c('div',{attrs:{"id":"app"}},[_c('div',{attrs:{"id":"app"}},_
     
     - 数据劫持优化
 
+### 5. Vue特点
+
+1. 两个核心功能
+* 声明式渲染：通过模板语法声明式地描述基于js状态的HTML解构
+
+* 响应式：Vue会自动追踪数据变化，响应式地更新DOM视图。
+2. 渐进式的Web开发框架
+* 灵活性和可逐步集成，可以以多种方式使用。
+
+* 作为独立脚本
+
+* 嵌入web component，特点就是适应性非常强，因为web component是原生标准，所以可以嵌入到任何页面甚至其他框架。
+
+* 有一套构建SPA的生态系统，包括路由如vue-router,构建工具vue-cli，开发者调试工具，还支持typescript集成
+3. 使用单文件组件（SFC），里面可以书写js，css和html
+
+4. vue3还推出了composition api，之所以叫做组合式api一个原因是因为它可以很方便地抽离重复逻辑到单独文件中，并且在这个文件中又可以引入其他的单文件工具，可以组合起来。像Vueuse就封装了100多个使用的逻辑。
+
 # 👏浏览器
 
 ## 1.你知道哪些跨页面通信的方式呢？
@@ -723,6 +924,132 @@ with(this){return _c('div',{attrs:{"id":"app"}},[_c('div',{attrs:{"id":"app"}},_
 7. 主垃圾回收器采用标记清除算法，标记完后原地清除，但是这样会导致内存碎片问题，所以还有另一种算法：标记整理算法，就是将存货对象移动到老生代的一段，然后将另一端的非活动对象回收。
 
 8. 全停顿现象是指由于js单线程的原因，当执行垃圾回收时，js线程暂停执行的现象。因此采用了增量标记算法，将一次完整的回收过程分成多个小的过程。同时还有其他一些方式如采用多个辅助垃圾回收线程。
+
+### 6. 如何写一个会过期的localStorage，说说想法
+
+有两种方案：**惰性删除**和**定时删除**
+
+**惰性删除**
+
+* 惰性删除是指某个键值过期以后不会被立刻删除，而是在下次被使用的时候才会检查是否过期，如果过期就删除。
+
+* 惰性删除实现了可过期的localStorage缓存，但是也有比较明显的缺点：如果一个key一直未被使用，那么这个key即使过期了也会一直存在。为了弥补这样缺点，可以使用另一种清理过期缓存的策略，即**定时删除**。
+
+**定时删除**
+
+* 定时删除是指，每隔一段时间执行一次删除操作，并通过限制删除操作执行的次数和频率，来减少删除操作对CPU的长期占用。另一方面定时删除也有效的减少了因惰性删除带来的对localStorage空间的浪费。
+* 具体实现时可以采取以下策略
+  * 首先通过Object.keys(localStorage)来获取所有的key,然后遍历key用正则表达式匹配出可过期的key
+  * 每隔一秒执行一次定时删除，操作如下：
+    1. 随机测试20个设置了过期时间的key。
+    2. 删除所有发现的已过期的key。
+    3. 若删除的key超过5个则重复**步骤1**，直至重复500次。
+
+**代码**
+
+* 惰性删除
+  
+  ```js
+  var lsc = (function (self) {
+  var prefix = 'one_more_lsc_'
+  
+  // 写入
+  self.set = function (key, val, expires) {
+    key = prefix + key
+    val = JSON.stringify({
+      val: val,
+      expires: Date.now() + expires * 1000
+    })
+    localStorage.setItem(key, val)
+  }
+  
+  // 读取
+  self.get = function (key) {
+    key = prefix + key
+    let val = localStorage.getItem(key)
+    if (!val) {
+      return null
+    }
+    val = JSON.parse(val)
+    if (val.expires < Date.now()) {
+      localStorage.removeItem(key)
+      return null
+    }
+    return val.val
+  }
+  
+  return self
+  })(lsc || {})
+  
+  ```
+
+```js
+
+* 定时删除
+
+ ```js
+var list = []
+// 初始化list
+self.init = function () {
+    var keys = Object.keys(localStorage)
+    var reg = new RegExp('^' + prefix)
+    for (var i = 0; i < keys.length; i++) {
+        if (reg.test(keys[i])) {
+            list.push(keys[i])
+        }
+    }
+}
+self.init()
+
+// 检查函数
+self.check = function () {
+    if (!list || list.length === 0) {
+        return
+    }
+    var checkCount = 500
+    while (checkCount--) {
+        // 随机测试20个设置了过期时间的key
+        var expiresCount
+        for (var i = 0; i < 20; i++) {
+            if (list.length === 0) break
+            var index = Math.random() * list.length
+            var key = list[index]
+            var val = localStorage.getItem(key)
+            if (!val) {
+                list.splice(index, 1)
+                expiresCount++
+                continue
+            }
+            val = JSON.parse(val)
+            if (val.expires < Date.now()) {
+                localStorage.removeItem(key)
+                list.splice(index, 1)
+                expiresCount++
+            }
+        }
+
+        if (expiresCount < 5 || list.length === 0) {
+            break
+        }
+    }
+}
+
+// 每个一秒执行一次
+window.setInterval(() => {
+    self.check()
+}, 1000)
+```
+
+## 7. localStorage 能跨域吗？
+
+不能。
+
+**解决方案**
+
+* 通过postMessage实现跨域通信
+* 通过创建一个公共的iframe并部署在某个域名下，作为共享域
+* 将需要进行localStorage跨域通信的页面嵌入该iframe
+* 接入对应的SDK（Software Development Kit ， 软件开发工具包）操作共享域，从而实现localStorage跨域通信
 
 # 👏前端工程化
 
@@ -948,49 +1275,398 @@ https://www.cnblogs.com/frankyou/p/6145485.html
 2. 客户端与服务器之间，传递这种资源的某种表现层
 
 3. 客户端通过HTTP method，对服务器资源进行操作，实现“表现层状态转化”
-- UDP和TCP区别讲一下
 
-- 跨域的几种实现方式
+### 13. UDP和TCP区别讲一下
 
-- 网站的本地缓存
+首先,DUP是利用IP提供的面向**无连接**的通信服务，而TCP是**面向连接的、可靠的、基于字节流**的传输层协议。
 
-- TCP/IP 四层模型 、OSI七层模型、每一层的有哪些常见的协议
+1. 连接：TCP先建立连接，UDP直接传输。
 
-- TCP 与 UDP 的区别
+2. 服务对象：TCP一对一，UDP一对多，多对多，一对一
 
-- TCP 的 三次握手与四次挥手（为什么是三次？ 为什么是四次？）
+3. 可靠性：TCP可靠，UDP不保证可靠
 
-- TCP 的 流量控制与拥塞控制
+4. TCP拥有流量控制和拥塞控制，UDP没有
 
-- TCP 可靠传输
+5. TCP流式传输，无边界，UDP一个包一个包传输。
 
-- TCP 滑动窗口
+6. 分片：TCP数据大小大于MSS，在传输层分片，在传输层组装，分片丢失只需传输该分片。UDP数据大小大于MTU，在IP层分片，在IP层组装。
 
-- HTTP 的请求方法
+### 14. 有一个 IP 的服务器监听了一个端口，它的 TCP 的最大连接数是多少？
 
-- GET 与 POST的区别
+因为一个TCP连接由四元组确定，而服务器端IP和端口号确定，那么理论上来说是客户端IP数乘上端口数。
 
-- HTTP 常见的请求头
+### 15. TCP三次握手？四次挥手？
 
-- HTTP 状态码
+三次握手：
 
-- HTTP 报文格式
+1. 客户端初始化一个随机序列号，并将SYN置1，然后把TCP报文发送给服务器端，这是第一次握手。
 
-- HTTP1.0 、HTTP1.1 、HTTP 2.0
+2. 服务器端接收到TCP报文，也初始化一个随机的序列号，然后把发送过来的序列号+1得到确认应答号，接着把SYN和ACK置1
 
-- HTTP 与 HTTPS 的区别 、HTTPS的握手过程
+3. 客户端接收到响应，将序列号+1得到确认应答号，把SYN位置1发送给服务器端，连接建立。
 
-- HTTPS中的三个随机数是如何生成会话密钥的
+4. 其中第一次和第二次握手不能携带数据，第三次握手时客户端是可以向服务器端发送数据的。序列号的作用是防止包乱序，确认应答号是保证对方接收到TCP报文。
 
-- HTTP 缓存：强缓存与协商缓存
+为什么是三次不是两次？
 
-- 进程、线程
+1. 主要的原因是为了避免重复的历史连接。第三次握手的作用就是告诉服务器可以发送传输数据了或者断开连接。假设只有两次握手，客户端发送一个SYN报文，由于网络拥堵客户端又发送了一个SYN报文，旧的报文先到达服务器，服务器回送SYN+ACK以后进入establish状态，开始传输数据，之后新的报文到达，因为客户端并没有告诉服务器之前那是一个历史连接，所以之前的连接还在，然后现在又建立起一个新连接，这样就导致连接重复，浪费了服务器端的资源。但是三次握手就可以解决这个问题，当客户端要重新发起请求建立连接时，它可以先发送一个RST断开和服务器的历史连接，然后再去建立新连接。
 
-- 进程之间的通信方式
+### 16. TCP重传
 
-- 线程的哪些资源共享？哪些资源不共享
+TCP为了确保数据准确地传送给对方，当发送端向接收端发送数据包，接收端接收到数据以后会向发送端发送确认应答。
 
-- 死锁
+当数据包发生丢失的情况就会触发重传。
+
+常见的TCP重传有4种：
+
+- 超时重传
+
+- 快速重传
+
+- SACK
+
+- D-SACK
+1. 超时重传
+
+从发送数据到接收到应答的时间超过重传时间RTO就会触发超时重传，导致超时的原因有两个，一是数据包丢失，而是确认应答丢失。RTO的大小既不能过大也不能过小，过大可能造成传输效率下降，过小又可能导致重复发送数据。所以RTO应该比RTT略大一些。但实际上RTO是动态变化的，因为网络状况是不稳定的。超时重传还有一个特点就是每一次重传的超时间隔都会增大到前一次的两倍，因为多次超时就说明网络情况不适宜频繁发送数据。
+
+2. 快速重传
+
+当收到三个相同的ACK报文时会在定时器过期前重传丢失的报文，但是这样有一个问题，那就是不知道要重传丢失的那个报文还是之后的所有报文，因为收到的三个ACK确认应答号都是相同的。于是就有了下面的SACK方法
+
+3. SACK（选择性确认）
+
+工作原理是通过在TCP报文头部字段种增加一个SACK的东西，它可以将缓存的地图给数据发送方，数据发送接收到缓存地图后就知道哪些数据丢失了，这样重发丢失的数据就行了。
+
+4. Duplicate SACK
+
+当确认应答丢失触发重传时，接收方接收到重传的数据判断为重复数据后就会发送D-SACK告诉发送方已经接收到该数据，重复发送了该数据。
+
+### 17. 滑动窗口
+
+1. Why?
+
+TCP在发送数据时都要进行确认应答，接收到确认应答之后才发送下一个数据。
+
+但是这样会导致通信效率低下，如果确认应答迟迟未收到，那么发送方无法发送下一个数据。
+
+为了解决这个问题就引入了窗口这个东西。它允许发送方连续发送多个数据。
+
+2. HOW?
+
+窗口的实现原理是操作系统在内存中开辟一块缓冲区，发送方将发送的数据缓存在缓冲区，当收到正确的应答才把该数据从缓冲区移除。
+
+而且，如果连续发送的TCP数据有一个ACK应答丢失，可以通过下一个ACK应答来进行确认，这样就不用重新发送数据。
+
+3. 窗口大小
+
+TCP头里有一个`Window`字段，表示窗口大小。一般来说窗口大小是由接收方决定的，接收方通过该字段告诉发送方自己还能处理数据的缓冲区大小，发送方根据它的能力来发送数据。
+
+这样保证了发送的数据能够被接收方正确处理。
+
+4. 发送方与接收方窗口的划分
+   
+   1. 发送方：四个区域，三个指针（），一个大小
+   
+   2. 接收方：三个区域，两个指针，一个大小
+
+5. 发送方的窗口大小一定等于接收方窗口大小吗？
+
+是约等于的关系，接收方处理快时窗口大，通过Window字段通知发送方，由于时延，所以并不能保证一定大小相等。
+
+6. 如何通过滑动窗口实现**流量控制**？
+
+### 18. http攻击
+
+1. DOS拒绝服务攻击
+
+DOS攻击是通过发送大量请求使得目标电脑网络和系统资源耗尽，使服务中断或暂停，其他用户无法访问的攻击方式。
+
+当攻击者使用网络上2台以上的电脑进行攻击时就成了DDOS分布式拒绝服务攻击。
+
+DOS分为几种类型：资源消耗型、带宽消耗型、漏洞触发型。
+
+**带宽消耗型**如UDP floods、ICMP floods，UDP floods通过发送大量的UDP数据包到攻击目标，堵塞其带宽。ICMP通过向未良好设置的路由器发送广播信息占用系统资源的做法。
+
+**资源消耗型**如SYN floods(利用TCP三次握手，发送大量的SYN数据包却不回送ACK来占用接收端资源)、LAND攻击、CC攻击（利用代理服务器进行攻击，一位中国黑客开发的工具。）
+
+**漏洞触发型**如ping of death(产生IP协议所能承受的数据包数使系统宕机)
+
+**防御方式**：入侵检测、流量过滤、多重验证。
+
+防火墙：设置允许或拒绝特定通讯协议，端口或IP地址。
+
+使用交换机检测并过滤DOS
+
+流量过滤：当获取到流量时，通过DDoS防御软件的处理，将正常流量和恶意流量区分开，正常的流量则回注回客户网站，反之则屏蔽。
+
+2. CSRF跨站请求伪造
+
+挟制用户在当前**已登录的Web应用程序**上执行**非本意的操作**的攻击方法。
+
+利用了web中用户身份验证的一个漏洞：**简单的身份验证只能保证请求是发自某个用户的浏览器，却不能保证请求本身是用户自愿发出的**。
+
+防御：1.将cookie设置为HttpOnly。CSRF攻击很大程度是利用了浏览器的cookie，cookie设置HttpOnly属性，JS脚本就无法读取到cookie中的信息，避免攻击者伪造cookie的情况出现。2.增加token。3.检查Referer字段，这个字段用以标明请求来源于哪个地址。但是也有可能被篡改。
+
+3. XSS跨站脚本攻击
+
+在通过注册的网站用户的浏览器内**运行非法的HTML标签或javascript**，从而达到攻击的目的，如盗取用户的cookie，改变网页的DOM结构，重定向到其他网页等。XSS攻击分类包含反射型，存储型，DOM型，FLASH。
+
+防御：不要相信用户的任何输入，并过滤掉输入中的所有特殊字符。主要有两种方式：过滤特殊字符和使用HTTP头指定类型。
+
+4. DNS查询攻击
+
+向被攻击的服务器发送海量的随机生成的**域名解析请求**，大部分根本就不存在，并且通过伪造端口和客户端IP，防止查询请求被ACL过滤。
+
+**防御**：根据域名 IP 自学习结果主动回应，减轻服务器负载（使用 DNS Cache）；对突然发起大量频度较低的域名解析请求的源 IP 地址进行带宽限制；在攻击发生时降低很少发起域名解析请求的源 IP 地址的优先级；限制每个源 IP 地址每秒的域名解析请求次数。
+
+### 19. get post区别 ，get在不同浏览器中的最大长度
+
+语义：get表示要获取资源，post表示要提交数据。
+
+应用场景：get是安全的，它一般用于查询、读取。请求中的URL可以手动输入，例如我们在浏览器中去访问一个网址。请求URL可以被保存在书签历史或浏览器缓存中，还可以分享给别人。post用于改变资源的状态。
+
+报文差别：get请求头最大长度是2048个字符，且只允许是ASCII字符；post的URL长度没有限制。
+
+本质区别：请求行不同，对资源的操作不同。
+
+不同浏览器get URL长度：
+
+* Google Chrome 允许 URL 的最大长度为 **2MB**
+
+* 在 Firefox 中，URL 的长度可以不受限制，但实际上在** 65,536 个字符**之后，位置栏不再显示 URL，也就是**2个字节**
+
+* Internet Explorer 允许 URL 的最大长度为 **2083 个字符**，但在 URL 的路径部分中 **不超过2048 个字符**。
+
+* Opera 允许 URL 长度**不受限制**。
+
+* Safari中 URL 的最大长度为 **80000 个字符**，超过此限制后页面会显示错误。
+
+### 20.怎么设置cookie的有效时间 ，代码是啥
+
+服务器收到 HTTP 请求时，在响应头里面添加一个 Set-Cookie 字段
+
+浏览器收到响应后保存下 Cookie
+
+前端设置cookie
+
+```js
+/**
+ * 设置cookie
+ */
+export function setCookie(name, value, hours = 24){
+  let str = name + "=" + value;
+  const time = new Date(new Date().getTime() + hours * 3600 * 1000).toGMTString();  // toGMTstring将时间转换成字符串
+  str += "; expires=" + time;
+  // 写入Cookie
+  document.cookie = str;
+}
+
+/**
+ * 获取cookie
+ */
+export function getCookie(name){
+  const reg = new RegExp("(^| )" + name + "=([^;]*)(;|$)"),
+    arr = document.cookie.match(reg);
+  if (arr !== null) {
+    return arr[2];
+  } else {
+    return null;
+  }
+}
+
+/**
+ * 清除cookie
+ */
+export function clearCookie(name){
+  setCookie(name, '', -1)
+}
+```
+
+### 21. CSRF攻击及其防御
+
+直接看美团这篇文章
+
+https://tech.meituan.com/2018/10/11/fe-security-csrf.html
+
+1. CSRF（Cross-site request forgery）跨站请求伪造：攻击者诱导受害者进入第三方网站，在第三方网站中，向被攻击网站发送跨站请求。利用受害者在被攻击网站已经获取的注册凭证，绕过后台的用户验证，达到冒充用户对被攻击的网站执行某项操作的目的。
+
+2. 一个典型的CSRF攻击有着如下的流程：
+* 受害者登录a.com，并保留了登录凭证（Cookie）。
+* 攻击者引诱受害者访问了b.com。
+* b.com 向 a.com 发送了一个请求：a.com/act=xx。浏览器会默认携带a.com的Cookie。
+* a.com接收到请求后，对请求进行验证，并确认是受害者的凭证，误以为是受害者自己发送的请求。
+* a.com以受害者的名义执行了act=xx。
+* 攻击完成，攻击者在受害者不知情的情况下，冒充受害者，让a.com执行了自己定义的操作。
+3. 常见的CSRF攻击类型有三种：get类型、post类型和链接类型。
+
+get: 通常是在网页中放入一个img链接，当用户访问时就会自动向链接中的网站发送请求，并且携带用户在该域下的cookie。
+
+post: 通常是在网页中放入一个隐藏的会自动提交的表单。
+
+链接类型的比较少见，因为它需要用户去主动点击链接。
+
+4. CSRF特点
+- 攻击由第三方网站发出而不是被攻击的网站
+
+- 冒用了用户身份，但攻击者是不能取得用户身份凭证如cookie的。
+
+- 攻击方式多样难以追踪。
+5. 防护策略
+
+根据CSRF的特点：攻击由第三方网站发起，攻击者不能获取到cookie信息，只能使用：
+
+- 阻止不明外域的访问
+  
+  - 同源检测
+  
+  - Samesite Cookie
+
+- 提交时要求附加本域才能获取到信息
+  
+  - CSRF Token
+  
+  - 双重cookie验证
+
+### 22. HTTP协议的缓存策略有哪些？
+
+（1）首先，缓存策略都是针对于第二次及之后的资源请求，在第一次请求资源时，服务器会返回数据以及通过报文header来告知客户端使用怎样的缓存策略。客户端拿到响应数据后，会将数据和资源标识备份到缓存数据库里。
+
+（2）第二次或之后发起请求时
+
+* 强缓存
+  * header:
+    * Cache-Control(http1.1)
+      * no-store: 不使用缓存
+      * no-cache: 使用缓存但是得到服务进行比对，检查资源是否更新
+      * max-age: 单位是秒，在规定时间内直接使用缓存，强缓存
+    * Expires(http1.0): 单位是秒，和max-age类似，但优先级比较低
+  * 在network中显示的是from memory或者from disk。
+* 协商缓存
+  * 第一次请求时服务器发送的header
+    * Last-modified
+      * 代表资源的最后修改时间
+    * Etag
+      * 代表资源在服务器上的唯一标识
+      * 优先级比Last-modified高
+  * 第二次请求时在请求头可以包含
+    * If-Last-Modified
+      * 就是上次服务器返回的Last-Modified
+      * 和服务器上的最后修改时间进行比较，如果服务的最后修改时间比它大，不使用缓存，返回新资源；否则比较成功，返回304状态码告知客户端使用缓存
+    * If-None-Match
+      * 就是上次服务器返回的Etag
+      * 用于比较资源的差异
+        * 强Etag: 字节上的变化就返回新资源
+        * 弱Etag: 允许部分变化，比如html标签顺序的改变，多了几个空格等
+          * 值前面加上'W/'
+    * 如果 HTTP/1.1 缓存或服务器收到的请求既带有 If-Modified-Since，又带有实体标签条件首部，那么只有这两个条件都满足时，才能返回 304 Not Modified 响应。
+
+（3）浏览器行为对缓存的影响
+
+* **浏览器地址栏回车，或者点击跳转按钮，前进，后退，新开窗口**
+  * Expires，max-age
+* **F5刷新浏览器，或者使用浏览器导航栏的刷新按钮**
+  * 会忽略掉Expires，max-age的限制，浏览器会在请求头里加一个“Cache-Control: max-age=0” 强行发起请求，它可以配合 ETag 和 Last-Modified 使用，如果本地缓存还在，且服务器返回 304 ，依然可以使用本地缓存。
+* **CTRL+F5**
+  * 强制请求，它其实是发了一个“Cache-Control: no-cache”，含义和“max-age=0”基本一样，就看后台的服务器怎么理解，通常两者的效果是相同的。
+* 很多网站的cache-control设置为no-cache，也就是使用缓存前都判断文件是否为最新，更为合理。
+
+**参考**：
+
+[http缓存详解，http缓存推荐方案](https://www.lmlphp.com/user/3013/article/item/591742/)
+
+[面试官：说说浏览器缓存知识
+
+### 23. 跨域及解决方案
+
+（1）CORS
+
+* CORS即跨域资源共享机制，实现方式简单来说就是在服务器返回的响应头里告诉浏览器允许该源请求资源。
+
+* CORS跨域分为两种请求
+
+* **简单请求**
+  
+  * 简单请求满足以下所有条件
+    * 请求方式为 `HEAD`、`POST`、`GET`之一
+    * 除了被用户代理自动设置的首部字段（如Connection,User-Agent）和在Fetch规范中定义为禁用首部名称的其他首部，允许认为设置的字段为 `Accept` `Accept-Language` `Content-Type` `Content-Language`
+    * `Content-Type`的值仅限于 `text/plain` `multipart/form-data` `application/x-www-form-urlencoded`
+    * 请求中的任意 [`XMLHttpRequest`](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest) 对象均没有注册任何事件监听器；[`XMLHttpRequest`](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest) 对象可以使用 [`XMLHttpRequest.upload`](https://developer.mozilla.org/zh-CN/docs/Web/API/XMLHttpRequest/upload) 属性访问。
+    * 请求中没有使用 [`ReadableStream`](https://developer.mozilla.org/zh-CN/docs/Web/API/ReadableStream) 对象。
+  * 一种简单的实现CORS的方式就是在请求报文的头部添加 `Origin`字段告知服务器当前请求来自的源；服务器则在响应报文头部中添加 `Access-Control-Allow-origin`字段来允许该源的资源请求，其值可以是 `*`表示允许任意域名的请求，也可以是具体的域名，表示仅允许来自该域名的资源请求。
+  * 除了`Access-Control-Allow-origin`字段以外，还可以添加以下两个可选的字段
+    * `Access-control-Allow-Credentials`：它的值是一个布尔值，表示是否允许在请求时**发送cookie**，该值只能设置为true,如果不允许时应当删除该字段。CORS请求默认不发送cookie.
+    * `Access-Contronl-Expose-Headers`：CORS请求时，XHR对象的 `getResponseHeader()`方法只能拿到6个基本字段：`Cache-Control` 、`Expires` 、`Last-Modified` 、`Content-Type` 、`Content-Language` 、`Pragma`，如果想拿到其他字段，就必须在该字段里面进行指定。
+
+* **复杂请求**
+  
+  * 不满足简单请求条件的请求就是复杂请求
+    
+    * 例如请求方法是`PUT` 、 `DELETE`，或者 `Content-Type`字段的值是 `appliction/json`
+  
+  * 预检请求
+    
+    * 作用是防止服务器资源被修改等
+    * 当浏览器发现一个请求是复杂请求之后，会以 `OPTIONS`方式主动发出一个预检请求
+    * 预检请求报文头部包含两个首部字段
+      * `Access-Control-Request-Method`告知服务器实际请求使用的方式
+      * `Access-Control-Request-Header`告知服务器实际请求携带的自定义头部字段
+    * 服务器接收到预检请求后，可以通过响应头部的 `Access-Control-Allow-Origin` 、`Access-Control-Allow-Headers` 、`Access-Control-Allow-Methods` 来告知浏览器：服务器允许哪个源，哪种请求头，哪种方式的请求。同时还可以通过 `Access-Control-Max-Age`表明响应的有效时间，即在该时间内浏览器无需再为同一请求发送预检请求。
+  
+  * 预检请求之后发送实际请求
+
+* **如果要携带cookie**
+  
+  * 对于**发送者**：原生Js方式必须设置XHR对象的 `withCredentials`属性为true，才会携带cookie
+    
+    `xhr.withCredentials = true;`
+  
+  * 对于**服务器**：必须在响应头部设置 `Access-Control-Allow-Credentials: true`，否则浏览器不会把响应内容返回给发送者。对于复杂请求发送的额外的预检请求的响应，也必须设置 `Access-Control-Allow-Credentials: true`。
+    
+    * 同时要注意的是，响应不能设置`Access-Control-Allow-Origin` 、 `Access-Control-Allow-Headers` 、 `Access-Control-Allow-Methods` 的值设为通配符“`*`”
+
+（2）JSONP
+
+* 原理：利用<script\>标签没有跨域限制的特性
+* 使用流程
+  * 通过<script\>标签的src属性把回调函数名即参数传到服务端，服务端在请求的脚本里将需要的资源传入该函数并执行该函数，然后前端就可以执行该脚本从而执行该函数拿到对应的资源。
+
+**参考：**
+
+1. [10种跨域解决方案（附终极大招）](https://juejin.cn/post/6844904126246027278)
+2. [3000字说说跨域！面试官听完之后露出了满意的笑容
+
+浏览器有哪几种缓存，区别是什么？
+
+浏览器缓存主要有**http缓存**、**cookie**和**Web Storage**，其中Web Storage又分为**sessionStorage**和**locaStorage**。
+
+**共同点**：都是保存在浏览器端、且同源的。
+
+**区别**：
+
+* **cookie数据始终在同源的http请求中携带（即使不需要）**,即cookie数据会在浏览器和服务器之间来回传递，而sessionStorage和localStorage则不会主动把数据发送给服务器，仅在本地进行存储。cookie数据还有路径（path）的概念，可以限制cookie只属于某个路径下
+* **存储大小限制不同**，cookie数据不能超过4k，同时由于每次发起http请求都会携带cookie、所以cookie只适合保存很小的数据，如会话标识。sessionStorage和localStorage虽然也有存储大小的限制，但比cookie大得多，可以达到5M或更大
+* **数据有效期不同**，sessionStorage：仅在当前浏览器窗口关闭之前有效；localStorage：始终有效，窗口或浏览器关闭也一直保存，因此用作持久数据；cookie：只在设置的cookie过期时间之前有效，即使窗口关闭或浏览器关闭
+* **作用域不同**，sessionStorage不在不同的浏览器窗口中共享，即使是同一个页面；localstorage和cookie在所有同源窗口中都是共享的。
+* web Storage支持**事件通知机制**，可以将数据更新的通知发送给监听者
+* web Storage的**api接口**使用更方便
+
+## 
+
+## 项目
+
+### 1. 如何在前端进行权限控制？
+
+1. 登录权限控制
+
+配置路由时可以给每个路由一个元信息`need_login`，设置导航守卫，通过元信息判断是否需要登录和用户有没有登录，需要登录但没有登录的话就跳转到登录页，并且把重定向路由和路由参数传过去，登录完成后根据这些参数进行路由跳转。
+
+2. 页面权限控制
+
+比如不同的角色能够访问的页面是不同的。
+
+先设置一个常量对象，对象中的`key:value`存放`角色标识：可访问页面数组`
 
 # 👏CSS
 
